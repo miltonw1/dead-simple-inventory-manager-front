@@ -22,7 +22,20 @@ export function useNotify () {
   const goodNotify =
     (message: string | number, route?: RouteLocationRaw) =>
     <T>(httpResponse: HttpResponse<T>) => {
-      if (!httpResponse.isOk) throw httpResponse.error
+      if (!httpResponse.isOk) {
+        if (httpResponse.code === 403) {
+          $q.notify({
+            color: 'warning',
+            textColor: 'dark',
+            icon: 'warning',
+            message: t('common.subscription_required'),
+            caption: t('common.subscription_required_detail'),
+            timeout: 5000
+          })
+          return
+        }
+        throw httpResponse.error
+      }
 
       $q.notify({
         color: 'positive',

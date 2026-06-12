@@ -23,6 +23,8 @@ export default {
   // messages
   error_login: 'Credenciales incorrectas',
   not_found: 'Oops. No hay nada aquí...',
+  subscription_required: 'Suscripción requerida',
+  subscription_required_detail: 'Necesitas una suscripción activa para realizar esta acción.',
 
   // accessibility
   aria_menu: 'Menú',

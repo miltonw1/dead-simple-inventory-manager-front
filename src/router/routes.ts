@@ -128,6 +128,13 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
       },
 
+      {
+        path: 'subscriptions/',
+        name: 'subscriptions view',
+        component: () => import('pages/subscriptions/SubscriptionsPage.vue'),
+        meta: { requiresAuth: true }
+      },
+
       // STORAGE LOCATIONS
       {
         path: 'storage-locations',

@@ -1,0 +1,124 @@
+<script setup lang="ts">
+import { useQuasar } from 'quasar'
+
+import { useRequests } from '../../composition/useRequests'
+import { subscriptionService } from 'src/services/Subscription'
+
+const quasar = useQuasar()
+
+const { request } = useRequests()
+
+const plans = [
+    {
+        name: 'Mensual',
+        plan: 'monthly',
+        price: '$20.000',
+        description: 'Facturación mensual'
+    },
+    {
+        name: 'Trimestral',
+        plan: 'quarterly',
+        price: '$50.000',
+        description: 'Facturación cada 3 meses'
+    },
+    {
+        name: 'Anual',
+        plan: 'yearly',
+        price: '$180.000',
+        description: 'Facturación anual'
+    }
+]
+
+async function subscribe(plan: 'monthly' | 'quarterly' | 'yearly') {
+    try {
+        quasar.loading.show()
+
+        const response = await request(
+            subscriptionService.createCheckout(plan)
+        )
+
+        const checkoutUrl = response.data?.checkout_url
+
+        if (!checkoutUrl) {
+            throw new Error('Checkout URL not received')
+        }
+
+        window.location.href = checkoutUrl
+    } catch (error) {
+        console.error(error)
+
+        quasar.notify({
+            color: 'negative',
+            message: 'No se pudo iniciar la suscripción'
+        })
+    } finally {
+        quasar.loading.hide()
+    }
+}
+</script>
+
+<template>
+    <q-page class="q-pa-lg">
+        <div class="text-center q-mb-xl">
+            <div class="text-h4">
+                Planes de Suscripción
+            </div>
+
+            <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Elegí el plan que mejor se adapte a tus necesidades
+            </div>
+        </div>
+
+        <div class="plans-container">
+            <q-card v-for="item in plans" :key="item.plan" class="subscription-card shadow-4">
+                <q-card-section class="bg-primary text-white">
+                    <div class="text-h5 text-center">
+                        {{ item.name }}
+                    </div>
+                </q-card-section>
+
+                <q-card-section class="text-center">
+                    <div class="text-h3 text-weight-bold">
+                        {{ item.price }}
+                    </div>
+
+                    <div class="text-subtitle2 text-grey-7 q-mt-sm">
+                        {{ item.description }}
+                    </div>
+                </q-card-section>
+
+                <q-separator />
+
+                <q-card-section>
+                    <ul class="features-list">
+                        <li>Acceso completo al sistema</li>
+                        <li>Actualizaciones incluidas</li>
+                        <li>Soporte estándar</li>
+                    </ul>
+                </q-card-section>
+
+                <q-card-actions align="center">
+                    <q-btn color="primary" size="lg" label="Suscribirse" @click="subscribe(item.plan)" />
+                </q-card-actions>
+            </q-card>
+        </div>
+    </q-page>
+</template>
+
+<style lang="scss" scoped>
+.plans-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 22rem));
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.subscription-card {
+    width: 100%;
+}
+
+.features-list {
+    margin: 0;
+    padding-left: 1rem;
+}
+</style>

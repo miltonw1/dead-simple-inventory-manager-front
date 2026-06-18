@@ -35,5 +35,10 @@ export const DRAWER_ITEMS: Link[] = [
     to: '/operations',
     label: 'operations.Operations',
     icon: 'swap_vert'
+  },
+  {
+    to: '/subscriptions',
+    label: 'Administrar Subscripción',
+    icon: 'payments'
   }
 ]

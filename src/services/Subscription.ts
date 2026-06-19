@@ -3,7 +3,7 @@
 import HttpResponse, { handle } from './Response'
 
 export interface SubscriptionCheckoutResponse {
-    checkout_url: string
+    init_point: string
 }
 
 class SubscriptionService {

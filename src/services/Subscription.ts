@@ -1,21 +1,16 @@
-// services/subscription.service.ts
-
+import Service from './Service'
 import HttpResponse, { handle } from './Response'
 
 export interface SubscriptionCheckoutResponse {
-    init_point: string
+    checkout_url: string
 }
 
-class SubscriptionService {
+class SubscriptionService extends Service {
     createCheckout(plan: 'monthly' | 'quarterly' | 'yearly') {
         return handle<SubscriptionCheckoutResponse>(
-            fetch('/api/subscription/checkout', {
+            fetch('http://localhost:8000/api/subscription/checkout', {
                 method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
+                headers: this.authHeader(),
                 body: JSON.stringify({ plan })
             })
         )

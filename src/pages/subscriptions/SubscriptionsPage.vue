@@ -38,15 +38,14 @@ async function subscribe(plan: 'monthly' | 'quarterly' | 'yearly') {
             subscriptionService.createCheckout(plan)
         )
 
-        console.log('RESPONSE:', response)
-        console.log('DATA:', response.data)
-        console.log('INIT_POINT:', response.data?.init_point)
+        const checkoutUrl = response.data?.checkout_url
 
-        const checkoutUrl = response.data?.init_point
 
-        if (!checkoutUrl) throw new Error('No checkout URL')
+        if (!checkoutUrl) {
+            throw new Error('No checkout URL')
+        }
 
-        window.location.assign(checkoutUrl)
+        window.location.href = checkoutUrl
     } catch (err) {
         console.error(err)
 

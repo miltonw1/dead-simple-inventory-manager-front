@@ -133,10 +133,10 @@ describe('operations store', () => {
   it('setQuantity handles invalid values', () => {
     const store = useOperationsStore()
     store.setQuantity('uuid', NaN)
-    expect(store.quantities['uuid']).toBe(0)
+    expect(store.quantities.uuid).toBe(0)
 
     store.setQuantity('uuid', -10)
-    expect(store.quantities['uuid']).toBe(0)
+    expect(store.quantities.uuid).toBe(0)
   })
 
   it('resets all operation state', () => {

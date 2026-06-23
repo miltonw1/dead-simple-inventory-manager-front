@@ -8,6 +8,7 @@ import { useWebVitals } from '../composition/useWebVitals'
 import { useSessionStore } from '../stores/session'
 import { useCategoriesStore } from '../stores/categories'
 import { useSuppliersStore } from '../stores/suppliers'
+import { useSubscriptionStore } from '../stores/subscription'
 
 import UserMenu from './UserMenu.vue'
 import LeftDrawer from './LeftDrawer.vue'
@@ -26,6 +27,7 @@ const toggleDrawer = () => {
 const sessionStore = useSessionStore()
 const categoriesStore = useCategoriesStore()
 const suppliersStore = useSuppliersStore()
+const subscriptionStore = useSubscriptionStore()
 
 // Initialize Core Web Vitals tracking
 useWebVitals()
@@ -48,7 +50,8 @@ onMounted(async () => {
 
   const responses = await Promise.all([
     categoriesStore.getCategories(),
-    suppliersStore.getSuppliers()
+    suppliersStore.getSuppliers(),
+    subscriptionStore.fetchStatus()
   ]).finally(() => quasar.loading.hide())
 
   if (responses.some((x) => x?.code === 401)) {

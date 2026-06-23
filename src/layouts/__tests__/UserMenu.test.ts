@@ -1,19 +1,29 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { setActivePinia, createPinia } from 'pinia'
 
 import UserMenu from '../UserMenu.vue'
 
 // Mock useI18n
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: vi.fn((key: string) => key) // Return key as is for simplicity
+    t: vi.fn((key: string) => key)
   })
 }))
 
-const mountComponent = (props = {}) =>
-  mount(UserMenu, { props: { user: { name: 'Test User' }, ...props } })
+const mountComponent = (props = {}) => {
+  const pinia = createPinia()
+  return mount(UserMenu, {
+    props: { user: { name: 'Test User' }, ...props },
+    global: { plugins: [pinia] }
+  })
+}
 
 describe('UserMenu.vue', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('renders the user name in the button and menu', () => {
     const wrapper = mountComponent()
     expect(wrapper.text()).toContain('Test User')

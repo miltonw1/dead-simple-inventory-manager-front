@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useSubscriptionStore } from '../stores/subscription'
 
 defineProps<{ user: { name: string } }>()
 defineEmits<{ logout: [void] }>()
 
 const { t } = useI18n()
+const subscriptionStore = useSubscriptionStore()
 </script>
 
 <template>
@@ -24,6 +26,33 @@ const { t } = useI18n()
 
       <q-separator inset />
 
+      <div class="q-pa-md subscription-info">
+        <div v-if="subscriptionStore.hasActiveSubscription && subscriptionStore.subscription">
+          <div class="text-caption text-grey">
+            {{ t('common.subscription_plan') }}
+          </div>
+          <div class="text-body2 text-weight-bold">
+            {{ subscriptionStore.planLabel }}
+          </div>
+          <div class="text-caption text-grey q-mt-sm">
+            {{ t('common.subscription_until') }}
+          </div>
+          <div class="text-body2">
+            {{ new Date(subscriptionStore.subscription.ends_at).toLocaleDateString() }}
+          </div>
+          <div class="text-caption text-grey q-mt-sm">
+            {{ t('common.subscription_days_remaining', { days: subscriptionStore.daysRemaining }) }}
+          </div>
+        </div>
+        <div v-else>
+          <div class="text-caption text-grey">
+            {{ t('common.subscription_no_active') }}
+          </div>
+        </div>
+      </div>
+
+      <q-separator inset />
+
       <q-list
         class="q-mt"
         style="min-width: 100px"
@@ -39,3 +68,9 @@ const { t } = useI18n()
     </q-menu>
   </q-btn>
 </template>
+
+<style scoped>
+.subscription-info {
+  min-width: 200px;
+}
+</style>

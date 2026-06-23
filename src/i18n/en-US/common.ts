@@ -26,6 +26,14 @@ export default {
   subscription_required: 'Subscription required',
   subscription_required_detail: 'You need an active subscription to perform this action.',
 
+  // subscription
+  subscription_plan: 'Plan',
+  subscription_days_remaining: '{days} days remaining',
+  subscription_no_active: 'No active subscription',
+  subscription_manage: 'Manage subscription',
+  subscription_current: 'Current plan',
+  subscription_until: 'Valid until',
+
   // accessibility
   aria_menu: 'Menu',
   aria_user: 'User'

@@ -82,6 +82,27 @@ onMounted(async () => {
           @logout="logout"
         />
       </q-toolbar>
+      <q-banner
+        v-if="!subscriptionStore.hasActiveSubscription"
+        class="bg-orange-3 text-orange-10 text-center q-pa-xs"
+        dense
+      >
+        <div class="row items-center justify-center q-gutter-sm">
+          <q-icon name="warning" size="xs" />
+          <span class="text-caption">
+            {{ t('common.subscription_required') }} —
+            {{ t('common.subscription_required_detail') }}
+          </span>
+          <q-btn
+            flat
+            dense
+            color="orange-10"
+            :label="t('common.credit_manage')"
+            :to="{ name: 'subscriptions view' }"
+            size="xs"
+          />
+        </div>
+      </q-banner>
     </q-header>
 
     <left-drawer v-model="drawer" />

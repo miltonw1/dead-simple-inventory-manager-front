@@ -26,13 +26,12 @@ export default {
   subscription_required: 'Suscripción requerida',
   subscription_required_detail: 'Necesitas una suscripción activa para realizar esta acción.',
 
-  // subscription
-  subscription_plan: 'Plan',
-  subscription_days_remaining: '{days} días restantes',
-  subscription_no_active: 'Sin suscripción activa',
-  subscription_manage: 'Administrar suscripción',
-  subscription_current: 'Plan actual',
-  subscription_until: 'Válido hasta',
+  // credit / days
+  credit_manage: 'Comprar días de acceso',
+  credit_current: 'Acceso actual',
+  credit_days_remaining: '{days} días restantes',
+  credit_no_active: 'Sin acceso activo',
+  credit_until: 'Válido hasta',
 
   // accessibility
   aria_menu: 'Menú',

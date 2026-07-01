@@ -1,38 +1,24 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useRequests } from '../../composition/useRequests'
 import { subscriptionService } from 'src/services/Subscription'
 import { useSubscriptionStore } from 'src/stores/subscription'
+import type { PlanData } from 'src/services/Subscription'
 
+const route = useRoute()
 const quasar = useQuasar()
 const { t } = useI18n()
 const { request } = useRequests()
 const subscriptionStore = useSubscriptionStore()
 
 const loadingPlan = ref<string | null>(null)
+const processingPayment = ref(false)
+const plans = ref<PlanData[]>([])
 
-const plans = [
-  {
-    name: 'Mensual',
-    plan: 'monthly',
-    price: '$20.000',
-    description: 'Facturación mensual'
-  },
-  {
-    name: 'Trimestral',
-    plan: 'quarterly',
-    price: '$50.000',
-    description: 'Facturación cada 3 meses'
-  },
-  {
-    name: 'Anual',
-    plan: 'yearly',
-    price: '$180.000',
-    description: 'Facturación anual'
-  }
-] as const
+let pollTimer: ReturnType<typeof setInterval> | null = null
 
 async function subscribe (plan: 'monthly' | 'quarterly' | 'yearly') {
   try {
@@ -54,15 +40,72 @@ async function subscribe (plan: 'monthly' | 'quarterly' | 'yearly') {
 
     quasar.notify({
       color: 'negative',
-      message: 'No se pudo iniciar la suscripción'
+      message: 'No se pudo iniciar el pago'
     })
   } finally {
     loadingPlan.value = null
   }
 }
 
+function formatPrice (amount: number, currency: string) {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount)
+}
+
+async function verifyAndPoll (attempts = 0) {
+  const maxAttempts = 12
+  if (attempts >= maxAttempts) {
+    processingPayment.value = false
+    quasar.notify({
+      color: 'warning',
+      message: 'No se pudo verificar el pago automáticamente. Recargá la página o intentá de nuevo.'
+    })
+    return
+  }
+
+  const response = await request(subscriptionService.verifyPending())
+
+  if (response.isOk && response.data?.verified) {
+    await subscriptionStore.fetchStatus()
+    processingPayment.value = false
+    quasar.notify({
+      color: 'positive',
+      message: 'Pago recibido. Tus días de acceso se han actualizado.'
+    })
+    return
+  }
+
+  pollTimer = setTimeout(() => verifyAndPoll(attempts + 1), 3000)
+}
+
 onMounted(async () => {
   await subscriptionStore.fetchStatus()
+
+  const plansResponse = await request(subscriptionService.getPlans())
+  if (plansResponse.isOk && plansResponse.data) {
+    plans.value = plansResponse.data
+  }
+
+  if (route.query.status === 'approved' || route.query.collection_status === 'approved' || route.query.payment === 'approved') {
+    processingPayment.value = true
+    quasar.notify({
+      color: 'positive',
+      message: 'Pago recibido. Estamos actualizando tus días de acceso...',
+      timeout: 2000
+    })
+    verifyAndPoll()
+  } else if (subscriptionStore.subscription?.status === 'pending') {
+    processingPayment.value = true
+    verifyAndPoll()
+  }
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearTimeout(pollTimer)
 })
 </script>
 
@@ -70,8 +113,27 @@ onMounted(async () => {
   <q-page class="q-pa-lg">
     <div class="text-center q-mb-xl">
       <div class="text-h4">
-        {{ t('common.subscription_manage') }}
+        {{ t('common.credit_manage') }}
       </div>
+    </div>
+
+    <div
+      v-if="processingPayment"
+      class="q-mb-xl"
+    >
+      <q-card class="current-plan-card shadow-4">
+        <q-card-section class="bg-warning text-center">
+          <q-spinner
+            color="white"
+            size="2em"
+            class="q-mr-sm"
+          />
+          <span class="text-h6 text-white">Procesando pago...</span>
+          <div class="text-caption text-white q-mt-sm">
+            Estamos verificando tu pago. Esto puede tomar unos segundos.
+          </div>
+        </q-card-section>
+      </q-card>
     </div>
 
     <div
@@ -81,19 +143,16 @@ onMounted(async () => {
       <q-card class="current-plan-card shadow-4">
         <q-card-section class="bg-positive text-white">
           <div class="text-h5 text-center">
-            {{ t('common.subscription_current') }}
+            {{ t('common.credit_current') }}
           </div>
         </q-card-section>
 
         <q-card-section class="text-center">
           <div class="text-h4 text-weight-bold text-positive">
-            {{ subscriptionStore.planLabel }}
-          </div>
-          <div class="text-subtitle1 q-mt-md">
-            {{ t('common.subscription_days_remaining', { days: subscriptionStore.daysRemaining }) }}
+            {{ t('common.credit_days_remaining', { days: subscriptionStore.daysRemaining }) }}
           </div>
           <div class="text-caption text-grey q-mt-sm">
-            {{ t('common.subscription_until') }} {{ new Date(subscriptionStore.subscription.ends_at).toLocaleDateString() }}
+            {{ t('common.credit_until') }} {{ new Date(subscriptionStore.subscription.ends_at).toLocaleDateString() }}
           </div>
         </q-card-section>
       </q-card>
@@ -101,7 +160,7 @@ onMounted(async () => {
 
     <div class="text-center q-mb-lg">
       <div class="text-subtitle1 text-grey-7">
-        Elegí el plan que mejor se adapte a tus necesidades
+        Elegí la cantidad de días que querés agregar a tu cuenta
       </div>
     </div>
 
@@ -113,17 +172,17 @@ onMounted(async () => {
       >
         <q-card-section class="bg-primary text-white">
           <div class="text-h5 text-center">
-            {{ item.name }}
+            {{ item.label }}
           </div>
         </q-card-section>
 
         <q-card-section class="text-center">
           <div class="text-h3 text-weight-bold">
-            {{ item.price }}
+            {{ formatPrice(item.amount, item.currency) }}
           </div>
 
           <div class="text-subtitle2 text-grey-7 q-mt-sm">
-            {{ item.description }}
+            {{ item.days }} días de acceso
           </div>
         </q-card-section>
 

@@ -1,6 +1,5 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { differenceInCalendarDays } from 'date-fns'
 
 import { subscriptionService } from '../services/Subscription'
 import type { SubscriptionData } from '../services/Subscription'
@@ -8,26 +7,17 @@ import type { SubscriptionData } from '../services/Subscription'
 export const useSubscriptionStore = defineStore('subscription', () => {
   const subscription = ref<SubscriptionData | null>(null)
   const hasActiveSubscription = ref(false)
+  const daysRemaining = ref<number | null>(null)
   const loading = ref(false)
 
   const planLabel = computed(() => {
     if (!subscription.value?.plan) return ''
     const labels: Record<string, string> = {
-      monthly: 'Mensual',
-      quarterly: 'Trimestral',
-      yearly: 'Anual'
+      monthly: '30 días',
+      quarterly: '90 días',
+      yearly: '365 días'
     }
     return labels[subscription.value.plan] ?? subscription.value.plan
-  })
-
-  const daysRemaining = computed(() => {
-    if (!hasActiveSubscription.value || !subscription.value?.ends_at) return null
-    const endsAt = new Date(subscription.value.ends_at)
-    endsAt.setHours(0, 0, 0, 0)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const days = differenceInCalendarDays(endsAt, today)
-    return days >= 0 ? days : 0
   })
 
   async function fetchStatus () {
@@ -36,6 +26,7 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     if (response.isOk && response.data) {
       hasActiveSubscription.value = response.data.has_active_subscription
       subscription.value = response.data.subscription
+      daysRemaining.value = response.data.days_remaining
     }
     loading.value = false
     return response
@@ -44,9 +35,9 @@ export const useSubscriptionStore = defineStore('subscription', () => {
   return {
     subscription,
     hasActiveSubscription,
+    daysRemaining,
     loading,
     planLabel,
-    daysRemaining,
     fetchStatus
   }
 })

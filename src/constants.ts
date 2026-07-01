@@ -38,7 +38,7 @@ export const DRAWER_ITEMS: Link[] = [
   },
   {
     to: '/subscriptions',
-    label: 'Administrar Subscripción',
+    label: 'Comprar créditos',
     icon: 'payments'
   }
 ]

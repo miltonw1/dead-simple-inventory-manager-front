@@ -28,6 +28,23 @@ export interface SubscriptionData {
 export interface SubscriptionStatusResponse {
     has_active_subscription: boolean
     subscription: SubscriptionData | null
+    days_remaining: number | null
+}
+
+export interface VerifyPendingResponse {
+    verified: boolean
+    has_active_subscription?: boolean
+    subscription?: SubscriptionData | null
+    days_remaining?: number | null
+    message?: string
+}
+
+export interface PlanData {
+    plan: 'monthly' | 'quarterly' | 'yearly'
+    label: string
+    amount: number
+    currency: string
+    days: number
 }
 
 class SubscriptionService extends Service {
@@ -44,6 +61,23 @@ class SubscriptionService extends Service {
   getStatus () {
     return handle<SubscriptionStatusResponse>(
       fetch('http://localhost:8000/api/user/subscription', {
+        headers: this.authHeader()
+      })
+    )
+  }
+
+  verifyPending () {
+    return handle<VerifyPendingResponse>(
+      fetch('http://localhost:8000/api/subscription/verify-pending', {
+        method: 'POST',
+        headers: this.authHeader()
+      })
+    )
+  }
+
+  getPlans () {
+    return handle<PlanData[]>(
+      fetch('http://localhost:8000/api/plans', {
         headers: this.authHeader()
       })
     )
